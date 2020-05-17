@@ -28,7 +28,7 @@ df_dict = {
 for dict in data:
     timestamp = str(dict['date'])
     your_dt = datetime.datetime.fromtimestamp(int(timestamp) / 1000)  # using the local timezone
-    date = your_dt.strftime("%Y-%m-%d %H:%M:%S")
+    date = your_dt.strftime("%Y %m %d")
     deaths = dict['death']
     df_dict['deaths'].append(deaths)
     df_dict['date'].append(date)
