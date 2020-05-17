@@ -22,23 +22,23 @@ data = response['data']
 
 df_dict = {
     'date': [],
-    'deaths': []
+    'daily deaths': []
 }
 
 for dict in data:
     timestamp = str(dict['date'])
     your_dt = datetime.datetime.fromtimestamp(int(timestamp) / 1000)  # using the local timezone
-    date = your_dt.strftime("%Y %m %d")
+    date = your_dt.strftime("%m %d")
     deaths = dict['death']
-    df_dict['deaths'].append(deaths)
+    df_dict['daily deaths'].append(deaths)
     df_dict['date'].append(date)
 
-df3 = pd.DataFrame(df_dict, columns=['deaths'])
+df3 = pd.DataFrame(df_dict, columns=['daily deaths'])
 df4 = pd.DataFrame(df_dict, columns=['date'])
 
 df5 = df3.diff(1)
 result = pd.concat([df4, df5], axis=1, sort=False)
-result = result.loc[result['deaths'] > 0]
+result = result.loc[result['daily deaths'] > 0]
 
-result.plot(x ='date', y='deaths', kind = 'bar')
+result.plot(x ='date', y='daily deaths', kind = 'bar')
 plt.show()
