@@ -27,7 +27,7 @@ df_dict = {
 
 for dict in data:
     timestamp = str(dict['date'])
-    your_dt = datetime.datetime.fromtimestamp(int(timestamp) / 1000)  # using the local timezone
+    your_dt = datetime.datetime.fromtimestamp(int(timestamp) / 1000)
     date = your_dt.strftime("%m %d")
     deaths = dict['death']
     df_dict['daily deaths'].append(deaths)
@@ -40,5 +40,5 @@ df5 = df3.diff(1)
 result = pd.concat([df4, df5], axis=1, sort=False)
 result = result.loc[result['daily deaths'] > 0]
 
-result.plot(x ='date', y='daily deaths', kind = 'bar')
+result.plot(x='date', y='daily deaths', kind='bar')
 plt.show()
