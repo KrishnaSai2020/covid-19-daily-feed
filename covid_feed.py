@@ -1,5 +1,6 @@
 import requests
 import pandas as pd
+import matplotlib.pyplot as plt
 
 
 def request_api_data():
@@ -22,3 +23,7 @@ for dict in response:
 
 df = pd.DataFrame(dict_of_case_nums, columns=['date', 'cases'])
 print(df)
+
+num_days_since_f_case = df.shape[0]
+df.plot(x ='date', y='cases', kind = 'line')
+plt.show()
