@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 import datetime
 from flask import Flask, render_template, request, redirect
 import pandas as pd
-from bokeh.plotting import figure, output_file, save
-from bokeh.models import ColumnDataSource
+from bokeh.plotting import figure, output_file, save, show
 from bokeh.models.tools import HoverTool
+from bokeh.resources import CDN
+from bokeh.embed import autoload_static, server_document
 
 output_file("templates/daily_death_graph.html")
 
@@ -31,31 +32,28 @@ def daily_deaths():
     data = response['data']
     df_dict = {
         'date': [],
-        'daily deaths': []
+        'daily_deaths': []
     }
 
     for dict in data:
         timestamp = str(dict['date'])
         your_dt = datetime.datetime.fromtimestamp(int(timestamp) / 1000)
-        date = your_dt.strftime("%y %m %d")
+        date = your_dt
         deaths = dict['death']
-        df_dict['daily deaths'].append(deaths)
+        df_dict['daily_deaths'].append(deaths)
         df_dict['date'].append(date)
 
-    df3 = pd.DataFrame(df_dict, columns=['daily deaths'])
-    df4 = pd.DataFrame(df_dict, columns=['date'])
+    df1 = pd.DataFrame(df_dict, columns=['daily_deaths'])
+    df2 = pd.DataFrame(df_dict, columns=['date'])
 
-    df5 = df3.diff(1)
-    result = pd.concat([df4, df5], axis=1, sort=False)
-    result = result.loc[result['daily deaths'] > 0]
-    source = ColumnDataSource(result)
-    output_file("templates/daily_death_graph.html")
-    p = figure()
-    p.line(source=source, x='date', y='daily deaths', color='blue', legend_label='line')
-    p.title.text = 'Daily new deaths in the U.K'
-    p.xaxis.axis_label = 'Date'
-    p.yaxis.axis_label = 'daily new deaths'
-    save(p)
+    df3 = df1.diff(1)
+    result = pd.concat([df2, df3], axis=1, sort=False)
+    result = result.loc[result['daily_deaths'] > 0]
+
+    p = figure(title="simple line example", x_axis_label='date',x_axis_type='datetime', y_axis_label='Daily_deaths',plot_width=400,plot_height=400)
+    p.line(source=result, x='date',y='daily_deaths')
+    save(p, 'templates/daily_death_graph.html')
+    # js, tag = autoload_static(p, CDN, "static/daily_death_grap_plot.js")
 
 
 @app.route('/')
@@ -63,17 +61,10 @@ def my_home():
     return render_template('home.html')
 
 
-@app.route('/daily_deaths')
-def daily_deaths_page():
-    daily_deaths()
-    return render_template('daily_deaths')
-
-
-
 @app.route('/<string:page_name>')
 def html_page(page_name):
-    if page_name == 'daily_deaths':
-        daily_deaths()
+    if page_name == 'daily_deaths.html':
+        tag = daily_deaths()
         return render_template('daily_deaths.html')
     else:
         return render_template(page_name)
