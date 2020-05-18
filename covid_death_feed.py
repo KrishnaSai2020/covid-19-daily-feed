@@ -1,14 +1,19 @@
 import requests
-import pandas as pd
 import matplotlib.pyplot as plt
 import datetime
 from flask import Flask, render_template, request, redirect
-import re
+import pandas as pd
+from bokeh.plotting import figure, output_file, save
+from bokeh.models import ColumnDataSource
+from bokeh.models.tools import HoverTool
+
+output_file("templates/daily_death_graph.html")
+
 
 app = Flask(__name__)
 
 
-def request_api_data():
+def request_api_data1():
     url = 'https://api.covid19uk.live/historyfigures'
     res = requests.get(url)
     try:
@@ -21,8 +26,8 @@ def request_api_data():
     return response
 
 
-def main():
-    response = request_api_data()
+def daily_deaths():
+    response = request_api_data1()
     data = response['data']
     df_dict = {
         'date': [],
@@ -43,8 +48,14 @@ def main():
     df5 = df3.diff(1)
     result = pd.concat([df4, df5], axis=1, sort=False)
     result = result.loc[result['daily deaths'] > 0]
-    result.plot(x='date', y='daily deaths', kind='bar')
-    plt.savefig('static/images/daily_death_graph.png')
+    source = ColumnDataSource(result)
+    output_file("templates/daily_death_graph.html")
+    p = figure()
+    p.line(source=source, x='date', y='daily deaths', color='blue', legend_label='line')
+    p.title.text = 'Daily new deaths in the U.K'
+    p.xaxis.axis_label = 'Date'
+    p.yaxis.axis_label = 'daily new deaths'
+    save(p)
 
 
 @app.route('/')
@@ -53,13 +64,19 @@ def my_home():
 
 
 @app.route('/daily_deaths')
-def death_stats():
-    main()
-    return render_template('daily_deaths.html', url='/static/images/daily_death_graph.png')
+def daily_deaths_page():
+    daily_deaths()
+    return render_template('daily_deaths')
 
 
 
-
+@app.route('/<string:page_name>')
+def html_page(page_name):
+    if page_name == 'daily_deaths':
+        daily_deaths()
+        return render_template('daily_deaths.html')
+    else:
+        return render_template(page_name)
 
 
 # def request_api_data():
