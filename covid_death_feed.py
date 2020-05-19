@@ -35,7 +35,6 @@ def daily_deaths():
         timestamp = dictionary['date']
         timestamp /= 1000
         your_dt = datetime.datetime.fromtimestamp(int(timestamp))  # using the local timezone
-        print(your_dt)
         deaths = dictionary['death']
         df_dict['daily_deaths'].append(deaths)
         df_dict['date'].append(your_dt)
@@ -74,7 +73,6 @@ def daily_cases():
         timestamp = dictionary['date']
         timestamp /= 1000
         your_dt = datetime.datetime.fromtimestamp(int(timestamp))  # using the local timezone
-        print(your_dt)
         cases = dictionary['confirmed']
         df_dict['daily_cases'].append(cases)
         df_dict['date'].append(your_dt)
