@@ -1,22 +1,18 @@
-import requests
-import matplotlib.pyplot as plt
 import datetime
-from flask import Flask, render_template, request, redirect
 import pandas as pd
-from bokeh.plotting import figure, output_file, save, show
-from bokeh.io import export_png
+import requests
+from bokeh.models import DatetimeTickFormatter
 from bokeh.models.tools import HoverTool
-from bokeh.resources import CDN
-from bokeh.embed import autoload_static, server_document, json_item, file_html
-from bokeh.embed import components
-from bs4 import BeautifulSoup
+from bokeh.plotting import figure, output_file, save
+from flask import Flask, render_template
+import matplotlib.pyplot as plt
 
 output_file("templates/daily_death_graph.html")
 
 app = Flask(__name__)
 
 
-def request_api_data1():
+def request_api_data():
     url = 'https://api.covid19uk.live/historyfigures'
     res = requests.get(url)
     try:
@@ -30,7 +26,7 @@ def request_api_data1():
 
 
 def daily_deaths():
-    response = request_api_data1()
+    response = request_api_data()
     data = response['data']
     df_dict = {
         'date': [],
@@ -38,12 +34,13 @@ def daily_deaths():
     }
 
     for dict in data:
-        timestamp = str(dict['date'])
-        your_dt = datetime.datetime.fromtimestamp(int(timestamp) / 1000)  # using the local timezone
-        date = your_dt
+        timestamp = dict['date']
+        timestamp/= 1000
+        your_dt = datetime.datetime.fromtimestamp(int(timestamp))  # using the local timezone
+        print(your_dt)
         deaths = dict['death']
         df_dict['daily_deaths'].append(deaths)
-        df_dict['date'].append(date)
+        df_dict['date'].append(your_dt)
 
     df1 = pd.DataFrame(df_dict, columns=['daily_deaths'])
     df2 = pd.DataFrame(df_dict, columns=['date'])
@@ -56,17 +53,55 @@ def daily_deaths():
     p.circle(source=result, x='date', y='daily_deaths', fill_color="blue", line_color="blue", size=6)
 
     hover_tool = HoverTool(tooltips=[
-        ('daily_deaths', '$y{000}'),
-        ('Date', '@date'),
-    ],
+        ('daily_deaths', '@daily_deaths{000}'),
 
-    formatters={
-            '@date': 'datetime'
+    ], formatters={
+            'daily_deaths': 'numeral',
     },
         mode='vline'
     )
     p.tools.append(hover_tool)
     save(p, 'templates/daily_death_graph.html')
+
+
+def daily_cases():
+    res = request_api_data()
+    data = res['data']
+    df_dict = {
+        'date': [],
+        'daily_cases': []
+    }
+
+    for dict in data:
+        timestamp = dict['date']
+        timestamp /= 1000
+        your_dt = datetime.datetime.fromtimestamp(int(timestamp))  # using the local timezone
+        print(your_dt)
+        cases = dict['confirmed']
+        df_dict['daily_cases'].append(cases)
+        df_dict['date'].append(your_dt)
+
+        df1 = pd.DataFrame(df_dict, columns=['daily_cases'])
+        df2 = pd.DataFrame(df_dict, columns=['date'])
+
+        df3 = df1.diff(1)
+        result = pd.concat([df2, df3], axis=1, sort=False)
+        result = result.loc[result['daily_cases'] > 0]
+        p = figure(title="Daily new cases in the U.K", x_axis_label='date', x_axis_type='datetime',
+                   y_axis_label='Daily_cases', plot_width=800, plot_height=600)
+        p.line(source=result, x='date', y='daily_cases')
+        p.circle(source=result, x='date', y='daily_cases', fill_color="blue", line_color="blue", size=6)
+
+        hover_tool = HoverTool(tooltips=[
+            ('daily_cases', '@daily_cases{000}'),
+
+        ], formatters={
+            'daily_cases': 'numeral',
+        },
+            mode='vline'
+        )
+        p.tools.append(hover_tool)
+        save(p, 'templates/daily_cases_graph.html')
 
 
 @app.route('/')
@@ -79,8 +114,12 @@ def html_page(page_name):
     if page_name == 'daily_deaths.html':
         daily_deaths()
         return render_template('daily_deaths.html')
+    if page_name == 'daily_cases.html':
+        daily_cases()
+        return render_template('daily_cases.html')
     else:
         return render_template(page_name)
+
 
 # def request_api_data():
 #     url = 'https://api.covid19uk.live/historyfigures'
