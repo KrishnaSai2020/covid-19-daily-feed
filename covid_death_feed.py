@@ -1,11 +1,9 @@
 import datetime
 import pandas as pd
 import requests
-from bokeh.models import DatetimeTickFormatter
 from bokeh.models.tools import HoverTool
 from bokeh.plotting import figure, output_file, save
 from flask import Flask, render_template
-import matplotlib.pyplot as plt
 
 output_file("templates/daily_death_graph.html")
 
@@ -33,12 +31,12 @@ def daily_deaths():
         'daily_deaths': []
     }
 
-    for dict in data:
-        timestamp = dict['date']
-        timestamp/= 1000
+    for dictionary in data:
+        timestamp = dictionary['date']
+        timestamp /= 1000
         your_dt = datetime.datetime.fromtimestamp(int(timestamp))  # using the local timezone
         print(your_dt)
-        deaths = dict['death']
+        deaths = dictionary['death']
         df_dict['daily_deaths'].append(deaths)
         df_dict['date'].append(your_dt)
 
@@ -48,7 +46,7 @@ def daily_deaths():
     df3 = df1.diff(1)
     result = pd.concat([df2, df3], axis=1, sort=False)
     result = result.loc[result['daily_deaths'] > 0]
-    p = figure(title="Daily new deaths in the U.K", x_axis_label='date', x_axis_type='datetime', y_axis_label='Daily_deaths',plot_width=800, plot_height=600)
+    p = figure(title="Daily new deaths in the U.K", x_axis_label='date', x_axis_type='datetime', y_axis_label='Daily_deaths', plot_width=800, plot_height=600)
     p.line(source=result, x='date', y='daily_deaths')
     p.circle(source=result, x='date', y='daily_deaths', fill_color="blue", line_color="blue", size=6)
 
@@ -72,12 +70,12 @@ def daily_cases():
         'daily_cases': []
     }
 
-    for dict in data:
-        timestamp = dict['date']
+    for dictionary in data:
+        timestamp = dictionary['date']
         timestamp /= 1000
         your_dt = datetime.datetime.fromtimestamp(int(timestamp))  # using the local timezone
         print(your_dt)
-        cases = dict['confirmed']
+        cases = dictionary['confirmed']
         df_dict['daily_cases'].append(cases)
         df_dict['date'].append(your_dt)
 
