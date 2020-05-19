@@ -12,6 +12,7 @@ output_file("templates/daily_death_graph.html")
 app = Flask(__name__)
 
 
+
 def request_api_data():
     url = 'https://api.covid19uk.live/historyfigures'
     res = requests.get(url)
